@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>AI Website Knowledge</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f4f7fb;
+        color: #1f2937;
+    }
+
+    /* Header */
+    header {
+        background: #111827;
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 30px;
+        margin-bottom: 8px;
+    }
+
+    header p {
+        color: #cbd5e1;
+    }
+
+    /* Main container */
+    .container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 35px auto;
+    }
+
+    /* Cards */
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+        margin-bottom: 15px;
+        color: #111827;
+    }
+
+    /* URL section */
+    .url-box {
+        display: flex;
+        gap: 10px;
+    }
+
+    input {
+        flex: 1;
+        padding: 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+    }
+
+    input:focus {
+        border-color: #2563eb;
+    }
+
+    button {
+        padding: 13px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #1d4ed8;
+    }
+
+    /* Knowledge documents */
+    #documents {
+        margin-top: 15px;
+    }
+
+    .document {
+        border-left: 4px solid #2563eb;
+        background: #f8fafc;
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+    }
+
+    .document h3 {
+        margin-bottom: 8px;
+    }
+
+    /* Important:
+       Display crawler output as plain text.
+       This prevents URLs/HTML from becoming unwanted links.
+    */
+	#knowledgeText {
+	    white-space: pre-wrap;
+	    word-wrap: break-word;
+	    line-height: 1.6;
+	    color: #475569;
+	    font-family: Arial, sans-serif;
+
+	    /* Fixed knowledge box */
+	    height: 500px;
+	    overflow-y: auto;
+	    overflow-x: hidden;
+
+	    padding: 15px;
+	    background: #ffffff;
+	    border: 1px solid #e2e8f0;
+	    border-radius: 8px;
+	}
+
+    /* Question section */
+    .question-box {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* Answer */
+    #answer {
+        margin-top: 15px;
+        padding: 18px;
+        background: #f8fafc;
+        border-radius: 8px;
+        line-height: 1.7;
+        min-height: 60px;
+    }
+
+    /* Loading */
+    .loading {
+        color: #64748b;
+        font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+
+        .url-box,
+        .question-box {
+            flex-direction: column;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<header>
+    <h1>🤖 AI Website Knowledge & Q&A</h1>
+
+    <p>
+        Crawl a website, generate knowledge and ask questions using AI
+    </p>
+</header>
+
+
+<div class="container">
+
+    <!-- URL Section -->
+    <div class="card">
+
+        <h2>🌐 Website Crawler</h2>
+
+        <p style="margin-bottom: 15px;">
+            Enter the starting URL to generate knowledge from the website.
+        </p>
+
+        <div class="url-box">
+
+            <input
+                type="text"
+                id="url"
+                placeholder="https://example.com">
+
+            <input
+                type="number"
+                id="maxPages"
+                value="10"
+                min="1"
+                max="500"
+                placeholder="Max pages">
+
+            <button onclick="crawlWebsite()">
+                Generate Knowledge
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Knowledge Documents -->
+    <div class="card">
+
+        <h2>📚 Knowledge Documents</h2>
+
+        <div id="documents">
+
+            <p class="loading">
+                No knowledge generated yet.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- Question Section -->
+    <div class="card">
+
+        <h2>💬 Ask AI</h2>
+
+        <p style="margin-bottom: 15px;">
+            Ask a question about the crawled website.
+        </p>
+
+        <div class="question-box">
+
+            <input
+                type="text"
+                id="question"
+                placeholder="Ask something about the website...">
+
+            <button onclick="askQuestion()">
+                Ask AI
+            </button>
+
+        </div>
+
+
+        <div id="answer">
+
+            <p class="loading">
+                AI answer will appear here.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    async function crawlWebsite() {
+
+        const url = document.getElementById("url").value;
+        const maxPages = document.getElementById("maxPages").value;
+        const documents = document.getElementById("documents");
+
+        if (!url) {
+            alert("Please enter a website URL.");
+            return;
+        }
+
+        if (!maxPages || maxPages < 1) {
+            alert("Please enter a valid number of pages.");
+            return;
+        }
+
+        documents.innerHTML =
+            "<p class='loading'>🔄 Crawling website and generating knowledge...</p>";
+
+        try {
+
+            const response = await fetch(
+                "/crawl?url=" + encodeURIComponent(url)
+                + "&maxPages=" + encodeURIComponent(maxPages)
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to crawl website");
+            }
+
+            const data = await response.text();
+
+            /*
+             * Create the knowledge container.
+             */
+            documents.innerHTML = `
+                <div class="document">
+
+                    <h3>📄 Generated Knowledge</h3>
+
+                    <pre id="knowledgeText"></pre>
+
+                </div>
+            `;
+
+            /*
+             * IMPORTANT:
+             * textContent displays the crawler result as text.
+             * It prevents URLs and HTML from being interpreted
+             * as actual HTML elements or links.
+             */
+            document.getElementById("knowledgeText").textContent = data;
+
+        } catch (error) {
+
+            documents.innerHTML =
+                "<p>❌ Failed to generate knowledge.</p>";
+
+            console.error(error);
+        }
+    }
+
+
+    async function askQuestion() {
+
+        const url = document.getElementById("url").value;
+        const maxPages = document.getElementById("maxPages").value;
+        const question = document.getElementById("question").value;
+        const answer = document.getElementById("answer");
+
+        if (!url) {
+            alert("Please enter the website URL first.");
+            return;
+        }
+
+        if (!maxPages || maxPages < 1) {
+            alert("Please enter a valid number of pages.");
+            return;
+        }
+
+        if (!question) {
+            alert("Please enter a question.");
+            return;
+        }
+
+        answer.innerHTML =
+            "<p class='loading'>🤖 AI is thinking...</p>";
+
+        try {
+
+            const response = await fetch(
+                "/ask?url=" + encodeURIComponent(url)
+                + "&question=" + encodeURIComponent(question)
+                + "&maxPages=" + encodeURIComponent(maxPages)
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to get AI response");
+            }
+
+            const data = await response.text();
+
+            /*
+             * Display AI response as text.
+             */
+            answer.textContent = data;
+
+        } catch (error) {
+
+            answer.textContent =
+                "❌ Failed to get an answer.";
+
+            console.error(error);
+        }
+    }
+
+</script>
+```
+
+</body>
+
+</html>
