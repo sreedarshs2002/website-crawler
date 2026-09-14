@@ -10,105 +10,161 @@ import java.util.*;
 public class CrawlerService {
 
 
-    public Document crawlWebsite(String startUrl, int maxPages) {
+	public Document crawlWebsite(String startUrl, int maxPages) {
 
-        List<Document> documents = new ArrayList<>();
-        Set<String> visited = new HashSet<>();
-        Queue<String> queue = new LinkedList<>();
+	    List<Document> documents = new ArrayList<>();
+	    Set<String> visited = new HashSet<>();
+	    Queue<String> queue = new LinkedList<>();
 
-        queue.add(startUrl);
+	    queue.add(startUrl);
 
-        String domain = getDomain(startUrl);
+	    String domain = getDomain(startUrl);
 
-        while (!queue.isEmpty() && visited.size() < maxPages) {
+	    while (!queue.isEmpty() && visited.size() < maxPages) {
 
-            String url = queue.poll();
+	        String url = queue.poll();
 
-            if (visited.contains(url)) {
-                continue;
-            }
+	        if (visited.contains(url)) {
+	            continue;
+	        }
 
-            visited.add(url);
+	        visited.add(url);
 
-            try {
+	        try {
 
-                System.out.println("Crawling: " + url);
+	            System.out.println("Crawling: " + url);
 
-                // Fetch webpage
-                org.jsoup.nodes.Document html =
-                        org.jsoup.Jsoup.connect(url)
-                                .userAgent(
-                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                                    "Chrome/140.0.0.0 Safari/537.36"
-                                )
-                                .referrer("https://www.google.com/")
-                                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-                                .header("Accept-Language", "en-US,en;q=0.9")
-                                .timeout(20000)
-                                .followRedirects(true)
-                                .get();
+	            // Fetch webpage
+	            org.jsoup.nodes.Document html =
+	                    org.jsoup.Jsoup.connect(url)
+	                            .userAgent(
+	                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+	                                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+	                                "Chrome/140.0.0.0 Safari/537.36"
+	                            )
+	                            .referrer("https://www.google.com/")
+	                            .header(
+	                                "Accept",
+	                                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+	                            )
+	                            .header(
+	                                "Accept-Language",
+	                                "en-US,en;q=0.9"
+	                            )
+	                            .timeout(20000)
+	                            .followRedirects(true)
+	                            .get();
+	            
+	            
+	            
 
-             // Remove unwanted HTML
-                html.select(
-                        "script, style, noscript, nav, footer, header, aside, form, " +
-                        "iframe, canvas, svg, " +
-                        ".ad, .ads, .advertisement, .advert, " +
-                        ".cookie, .cookies, .cookie-banner, " +
-                        ".popup, .modal, " +
-                        ".sidebar, .social-share"
-                ).remove();
 
-                // Structure the content
-                String structuredContent =
-                        extractStructuredContent(html, url);
+	            // ==========================================
+	            // FIND LINKS BEFORE REMOVING HTML
+	            // ==========================================
 
-                // Create Spring AI Document
-                Document document = new Document(structuredContent);
+	            System.out.println("================================");
+	            System.out.println("LINK DISCOVERY FOR: " + url);
+	            System.out.println("Total <a href> links found: "
+	                    + html.select("a[href]").size());
+	            System.out.println("Current domain: " + domain);
+	            System.out.println("================================");
 
-                document.getMetadata().put("title", html.title());
-                document.getMetadata().put("url", url);
+	            for (org.jsoup.nodes.Element link : html.select("a[href]")) {
 
-                documents.add(document);
+	                String nextUrl = link.absUrl("href");
 
-                // Find links for crawling
-                for (org.jsoup.nodes.Element link : html.select("a[href]")) {
+	                System.out.println("FOUND LINK: " + nextUrl);
 
-                    String nextUrl = link.absUrl("href");
+	                if (nextUrl.isEmpty()) {
+	                    continue;
+	                }
 
-                    if (nextUrl.isEmpty()) {
-                        continue;
-                    }
+	                // Remove #section
+	                nextUrl = nextUrl.split("#")[0];
 
-                    // Remove #section
-                    nextUrl = nextUrl.split("#")[0];
+	                if (nextUrl.isEmpty()) {
+	                    continue;
+	                }
 
-                    // Only crawl same-domain links
-                    if (nextUrl.startsWith("http")
-                            && getDomain(nextUrl).equals(domain)
-                            && !visited.contains(nextUrl)
-                            && !queue.contains(nextUrl)) {
+	                // Only crawl HTTP/HTTPS links
+	                if (!nextUrl.startsWith("http")) {
+	                    System.out.println("SKIPPED - Not HTTP/HTTPS: " + nextUrl);
+	                    continue;
+	                }
 
-                        queue.add(nextUrl);
-                    }
-                }
+	                // Only crawl same-domain links
+	                if (!getDomain(nextUrl).equals(domain)) {
+	                    System.out.println(
+	                            "SKIPPED - Different domain: " + nextUrl
+	                            + " | Domain: " + getDomain(nextUrl)
+	                    );
+	                    continue;
+	                }
 
-            } catch (Exception e) {
+	                // Don't crawl already visited pages
+	                if (visited.contains(nextUrl)) {
+	                    System.out.println("SKIPPED - Already visited: " + nextUrl);
+	                    continue;
+	                }
 
-            	System.out.println("================================");
-                System.out.println("FAILED TO CRAWL");
-                System.out.println("URL: " + url);
-                System.out.println("Error Type: " + e.getClass().getName());
-                System.out.println("Error Message: " + e.getMessage());
-                System.out.println("================================");
-            }
-        }
+	                // Don't add duplicate queue entries
+	                if (queue.contains(nextUrl)) {
+	                    System.out.println("SKIPPED - Already in queue: " + nextUrl);
+	                    continue;
+	                }
 
-        System.out.println("Crawling completed.");
-        System.out.println("Pages visited: " + visited.size());
+	                System.out.println("ADDING TO QUEUE: " + nextUrl);
 
-        return createKnowledgeDocument(documents, startUrl);
-    }
+	                queue.add(nextUrl);
+	            }
+
+
+	            // ==========================================
+	            // NOW REMOVE UNWANTED HTML
+	            // ==========================================
+
+	            html.select(
+	                    "script, style, noscript, nav, footer, header, aside, form, " +
+	                    "iframe, canvas, svg, " +
+	                    ".ad, .ads, .advertisement, .advert, " +
+	                    ".cookie, .cookies, .cookie-banner, " +
+	                    ".popup, .modal, " +
+	                    ".sidebar, .social-share"
+	            ).remove();
+
+	            // ==========================================
+	            // EXTRACT CLEAN CONTENT
+	            // ==========================================
+
+	            String structuredContent =
+	                    extractStructuredContent(html, url);
+
+
+	            // Create Spring AI Document
+	            Document document = new Document(structuredContent);
+
+	            document.getMetadata().put("title", html.title());
+	            document.getMetadata().put("url", url);
+
+	            documents.add(document);
+
+	        } catch (Exception e) {
+
+	            System.out.println("================================");
+	            System.out.println("FAILED TO CRAWL");
+	            System.out.println("URL: " + url);
+	            System.out.println("Error Type: " + e.getClass().getName());
+	            System.out.println("Error Message: " + e.getMessage());
+	            System.out.println("================================");
+	        }
+	    }
+
+	    System.out.println("Crawling completed.");
+	    System.out.println("Pages visited: " + visited.size());
+
+	    return createKnowledgeDocument(documents, startUrl);
+	}
 
 
     private String extractStructuredContent(
@@ -414,7 +470,20 @@ public class CrawlerService {
 
             URI uri = new URI(url);
 
-            return uri.getHost();
+            String host = uri.getHost();
+
+            if (host == null) {
+                return "";
+            }
+
+            host = host.toLowerCase();
+
+            // Treat www.example.com and example.com as the same domain
+            if (host.startsWith("www.")) {
+                host = host.substring(4);
+            }
+
+            return host;
 
         } catch (Exception e) {
 
