@@ -37,8 +37,16 @@ public class CrawlerService {
                 // Fetch webpage
                 org.jsoup.nodes.Document html =
                         org.jsoup.Jsoup.connect(url)
-                                .userAgent("Mozilla/5.0")
-                                .timeout(10000)
+                                .userAgent(
+                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                                    "Chrome/140.0.0.0 Safari/537.36"
+                                )
+                                .referrer("https://www.google.com/")
+                                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                                .header("Accept-Language", "en-US,en;q=0.9")
+                                .timeout(20000)
+                                .followRedirects(true)
                                 .get();
 
              // Remove unwanted HTML
@@ -87,8 +95,12 @@ public class CrawlerService {
 
             } catch (Exception e) {
 
-                System.out.println("Failed to crawl: " + url);
-                System.out.println("Reason: " + e.getMessage());
+            	System.out.println("================================");
+                System.out.println("FAILED TO CRAWL");
+                System.out.println("URL: " + url);
+                System.out.println("Error Type: " + e.getClass().getName());
+                System.out.println("Error Message: " + e.getMessage());
+                System.out.println("================================");
             }
         }
 
