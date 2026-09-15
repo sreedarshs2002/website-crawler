@@ -29,7 +29,8 @@ public class CrawlerService {
 	        String domain) {
 
 	    ChromeOptions options = new ChromeOptions();
-
+	    options.setBinary("/usr/bin/chromium");
+	    
 	    options.addArguments("--headless=new");
 	    options.addArguments("--no-sandbox");
 	    options.addArguments("--disable-dev-shm-usage");
@@ -532,14 +533,18 @@ public class CrawlerService {
 	
 	private String getRenderedHtml(String url) {
 
-	    ChromeOptions options = new ChromeOptions();
+		ChromeOptions options = new ChromeOptions();
 
-	    options.addArguments("--headless=new");
-	    options.addArguments("--no-sandbox");
-	    options.addArguments("--disable-dev-shm-usage");
-	    options.addArguments("--disable-gpu");
+		options.setBinary("/usr/bin/chromium");
 
-	    WebDriver driver = new ChromeDriver(options);
+		options.addArguments("--headless=new");
+		options.addArguments("--no-sandbox");
+		options.addArguments("--disable-dev-shm-usage");
+		options.addArguments("--disable-gpu");
+		options.addArguments("--disable-software-rasterizer");
+		options.addArguments("--remote-allow-origins=*");
+
+		WebDriver driver = new ChromeDriver(options);
 
 	    try {
 
