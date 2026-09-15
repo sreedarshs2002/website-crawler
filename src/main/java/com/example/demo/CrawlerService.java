@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import java.time.Duration;
-
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -18,6 +18,264 @@ import java.util.*;
 @Service
 public class CrawlerService {
 
+	
+	
+	
+	
+	private void discoverButtonLinks(
+	        String url,
+	        Queue<String> queue,
+	        Set<String> visited,
+	        String domain) {
+
+	    ChromeOptions options = new ChromeOptions();
+
+	    options.addArguments("--headless=new");
+	    options.addArguments("--no-sandbox");
+	    options.addArguments("--disable-dev-shm-usage");
+	    options.addArguments("--disable-gpu");
+
+	    WebDriver driver = new ChromeDriver(options);
+
+	    try {
+
+	        System.out.println("================================");
+	        System.out.println("DISCOVERING BUTTON LINKS");
+	        System.out.println("URL: " + url);
+	        System.out.println("================================");
+
+	        driver.get(url);
+
+	        WebDriverWait wait =
+	                new WebDriverWait(driver, Duration.ofSeconds(10));
+
+	        wait.until(
+	                ExpectedConditions.presenceOfElementLocated(
+	                        By.tagName("body")
+	                )
+	        );
+
+	        Thread.sleep(2000);
+
+	        /*
+	         * Find:
+	         * 1. Real <button> elements
+	         * 2. Elements with role="button"
+	         * 3. <a> elements that may behave like buttons
+	         */
+	        List<WebElement> elements = driver.findElements(
+	                By.cssSelector(
+	                        "button, [role='button'], a"
+	                )
+	        );
+
+	        System.out.println(
+	                "Potential clickable elements found: "
+	                        + elements.size()
+	        );
+
+	        for (int i = 0; i < elements.size(); i++) {
+
+	            try {
+
+	                /*
+	                 * Reload the original page before checking
+	                 * the next element.
+	                 */
+	                driver.get(url);
+
+	                wait.until(
+	                        ExpectedConditions.presenceOfElementLocated(
+	                                By.tagName("body")
+	                        )
+	                );
+
+	                Thread.sleep(1000);
+
+	                /*
+	                 * Get the elements again because after
+	                 * driver.get(), old WebElement objects are
+	                 * no longer reliable.
+	                 */
+	                List<WebElement> currentElements =
+	                        driver.findElements(
+	                                By.cssSelector(
+	                                        "button, [role='button'], a"
+	                                )
+	                        );
+
+	                if (i >= currentElements.size()) {
+	                    continue;
+	                }
+
+	                WebElement element = currentElements.get(i);
+
+	                String text = element.getText();
+
+	                if (text == null || text.trim().isEmpty()) {
+	                    continue;
+	                }
+
+	                text = text.trim();
+
+	                String lowerText = text.toLowerCase();
+
+	                /*
+	                 * Only click navigation-type elements.
+	                 */
+	                boolean navigationElement =
+	                        lowerText.contains("get started")
+	                        || lowerText.contains("login")
+	                        || lowerText.contains("log in")
+	                        || lowerText.contains("sign in")
+	                        || lowerText.contains("sign up")
+	                        || lowerText.contains("register");
+
+	                if (!navigationElement) {
+	                    continue;
+	                }
+
+	                System.out.println(
+	                        "Trying clickable element: " + text
+	                );
+
+	                /*
+	                 * Remember the original browser window.
+	                 */
+	                String originalWindow =
+	                        driver.getWindowHandle();
+
+	                Set<String> windowsBefore =
+	                        driver.getWindowHandles();
+
+	                /*
+	                 * Click the element.
+	                 */
+	                element.click();
+
+	                Thread.sleep(2000);
+
+	                /*
+	                 * Check whether a new tab/window was opened.
+	                 */
+	                Set<String> windowsAfter =
+	                        driver.getWindowHandles();
+
+	                String targetUrl = driver.getCurrentUrl();
+
+	                /*
+	                 * If a new tab/window appeared,
+	                 * switch to it.
+	                 */
+	                if (windowsAfter.size() > windowsBefore.size()) {
+
+	                    for (String window : windowsAfter) {
+
+	                        if (!windowsBefore.contains(window)) {
+
+	                            driver.switchTo().window(window);
+
+	                            targetUrl =
+	                                    driver.getCurrentUrl();
+
+	                            break;
+	                        }
+	                    }
+	                }
+
+	                /*
+	                 * Remove URL fragments.
+	                 *
+	                 * Example:
+	                 * https://example.com/page#section
+	                 *
+	                 * becomes:
+	                 * https://example.com/page
+	                 */
+	                if (targetUrl != null) {
+
+	                    targetUrl =
+	                            targetUrl.split("#")[0];
+
+	                    System.out.println(
+	                            "Button destination: "
+	                                    + targetUrl
+	                    );
+
+	                    /*
+	                     * Only add valid HTTP/HTTPS URLs.
+	                     */
+	                    if (targetUrl.startsWith("http://")
+	                            || targetUrl.startsWith("https://")) {
+
+	                        /*
+	                         * Only allow same-domain pages.
+	                         */
+	                        if (getDomain(targetUrl)
+	                                .equals(domain)) {
+
+	                            if (!visited.contains(targetUrl)
+	                                    && !queue.contains(targetUrl)) {
+
+	                                queue.add(targetUrl);
+
+	                                System.out.println(
+	                                        "Added button URL: "
+	                                                + targetUrl
+	                                );
+	                            }
+	                        }
+	                    }
+	                }
+
+	                /*
+	                 * Close the newly opened tab/window
+	                 * if one was created.
+	                 */
+	                if (windowsAfter.size() > windowsBefore.size()) {
+
+	                    driver.close();
+
+	                    /*
+	                     * Switch back to original window.
+	                     */
+	                    driver.switchTo()
+	                            .window(originalWindow);
+	                }
+
+	            } catch (Exception e) {
+
+	                System.out.println(
+	                        "Could not process clickable element: "
+	                                + e.getMessage()
+	                );
+	            }
+	        }
+
+	        System.out.println(
+	                "Queue after button discovery: "
+	                        + queue.size()
+	        );
+
+	    } catch (Exception e) {
+
+	        System.out.println(
+	                "Button discovery failed: "
+	                        + e.getMessage()
+	        );
+
+	    } finally {
+
+	        driver.quit();
+
+	        System.out.println(
+	                "Button discovery browser closed."
+	        );
+	    }
+	}
+	
+	
+	
 
 	public Document crawlWebsite(String startUrl, int maxPages) {
 
@@ -198,12 +456,31 @@ public class CrawlerService {
 	                 System.out.println(
 	                     "Queue after Selenium: " + queue.size()
 	                 );
+	                 
+	                 
+	              // ==========================================
+	              // CHECK NAVIGATION BUTTONS
+	              // ==========================================
+	              if (queue.size() < pagesNeeded) {
+
+	                  discoverButtonLinks(
+	                          url,
+	                          queue,
+	                          visited,
+	                          domain
+	                  );
+
+	                  System.out.println(
+	                          "Queue after button discovery: " + queue.size()
+	                  );
+	              }
+	                 
 	             }
 	         }
 	         
 
-	           
-
+	         
+	        
 
 	            // ==========================================
 	            // NOW REMOVE UNWANTED HTML
