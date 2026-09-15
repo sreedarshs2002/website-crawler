@@ -1,6 +1,15 @@
 package com.example.demo;
 
+import java.time.Duration;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.ai.document.Document;
+
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -59,65 +68,141 @@ public class CrawlerService {
 	            
 
 
-	            // ==========================================
-	            // FIND LINKS BEFORE REMOVING HTML
-	            // ==========================================
+	         // ==========================================
+	         // FIND LINKS USING JSOUP
+	         // ==========================================
 
-	            System.out.println("================================");
-	            System.out.println("LINK DISCOVERY FOR: " + url);
-	            System.out.println("Total <a href> links found: "
-	                    + html.select("a[href]").size());
-	            System.out.println("Current domain: " + domain);
-	            System.out.println("================================");
+	         System.out.println("================================");
+	         System.out.println("LINK DISCOVERY FOR: " + url);
 
-	            for (org.jsoup.nodes.Element link : html.select("a[href]")) {
+	         for (org.jsoup.nodes.Element link : html.select("a[href]")) {
 
-	                String nextUrl = link.absUrl("href");
+	             String nextUrl = link.absUrl("href");
 
-	                System.out.println("FOUND LINK: " + nextUrl);
+	             if (nextUrl.isEmpty()) {
+	                 continue;
+	             }
 
-	                if (nextUrl.isEmpty()) {
-	                    continue;
-	                }
+	             // Remove #section
+	             nextUrl = nextUrl.split("#")[0];
 
-	                // Remove #section
-	                nextUrl = nextUrl.split("#")[0];
+	             if (nextUrl.isEmpty()) {
+	                 continue;
+	             }
 
-	                if (nextUrl.isEmpty()) {
-	                    continue;
-	                }
+	             // Only HTTP/HTTPS
+	             if (!nextUrl.startsWith("http")) {
+	                 continue;
+	             }
 
-	                // Only crawl HTTP/HTTPS links
-	                if (!nextUrl.startsWith("http")) {
-	                    System.out.println("SKIPPED - Not HTTP/HTTPS: " + nextUrl);
-	                    continue;
-	                }
+	             // Only same-domain links
+	             if (!getDomain(nextUrl).equals(domain)) {
+	                 continue;
+	             }
 
-	                // Only crawl same-domain links
-	                if (!getDomain(nextUrl).equals(domain)) {
-	                    System.out.println(
-	                            "SKIPPED - Different domain: " + nextUrl
-	                            + " | Domain: " + getDomain(nextUrl)
-	                    );
-	                    continue;
-	                }
+	             // Don't crawl already visited pages
+	             if (visited.contains(nextUrl)) {
+	                 continue;
+	             }
 
-	                // Don't crawl already visited pages
-	                if (visited.contains(nextUrl)) {
-	                    System.out.println("SKIPPED - Already visited: " + nextUrl);
-	                    continue;
-	                }
+	             // Don't add duplicate queue entries
+	             if (queue.contains(nextUrl)) {
+	                 continue;
+	             }
 
-	                // Don't add duplicate queue entries
-	                if (queue.contains(nextUrl)) {
-	                    System.out.println("SKIPPED - Already in queue: " + nextUrl);
-	                    continue;
-	                }
+	             System.out.println("ADDING TO QUEUE: " + nextUrl);
+	             queue.add(nextUrl);
+	         }
 
-	                System.out.println("ADDING TO QUEUE: " + nextUrl);
+	         int pagesNeeded = maxPages - visited.size();
 
-	                queue.add(nextUrl);
-	            }
+	         System.out.println("Pages already visited: " + visited.size());
+	         System.out.println("Pages waiting in queue: " + queue.size());
+	         System.out.println("Pages still needed: " + pagesNeeded);
+	         System.out.println("Maximum pages requested: " + maxPages);
+	         System.out.println("================================");
+
+	         // ==========================================
+	         // USE SELENIUM IF JSOUP DOES NOT FIND ENOUGH
+	         // ==========================================
+
+	         if (queue.size() < pagesNeeded) {
+
+	             System.out.println("Jsoup did not find enough links.");
+	             System.out.println("Pages still needed: " + pagesNeeded);
+	             System.out.println("Pages available in queue: " + queue.size());
+	             System.out.println("Trying Selenium...");
+
+	             String renderedHtml = getRenderedHtml(url);
+
+	             if (!renderedHtml.isEmpty()) {
+
+	                 html = org.jsoup.Jsoup.parse(renderedHtml, url);
+
+	                 System.out.println("Selenium HTML parsed by Jsoup.");
+
+	                 System.out.println(
+	                     "Links after Selenium rendering: "
+	                     + html.select("a[href]").size()
+	                 );
+
+	                 // ==========================================
+	                 // DISCOVER LINKS FROM SELENIUM HTML
+	                 // ==========================================
+
+	                 for (org.jsoup.nodes.Element link :
+	                         html.select("a[href]")) {
+
+	                     String nextUrl = link.absUrl("href");
+
+	                     System.out.println("SELENIUM FOUND LINK: " + nextUrl);
+
+	                     if (nextUrl.isEmpty()) {
+	                         continue;
+	                     }
+
+	                     // Remove #section
+	                     nextUrl = nextUrl.split("#")[0];
+
+	                     if (nextUrl.isEmpty()) {
+	                         continue;
+	                     }
+
+	                     // Only HTTP/HTTPS
+	                     if (!nextUrl.startsWith("http")) {
+	                         continue;
+	                     }
+
+	                     // Only same-domain links
+	                     if (!getDomain(nextUrl).equals(domain)) {
+	                         continue;
+	                     }
+
+	                     // Already visited
+	                     if (visited.contains(nextUrl)) {
+	                         continue;
+	                     }
+
+	                     // Already in queue
+	                     if (queue.contains(nextUrl)) {
+	                         continue;
+	                     }
+
+	                     System.out.println(
+	                         "SELENIUM ADDING TO QUEUE: " + nextUrl
+	                     );
+
+	                     queue.add(nextUrl);
+	                 }
+
+	                 System.out.println(
+	                     "Queue after Selenium: " + queue.size()
+	                 );
+	             }
+	         }
+	         
+
+	           
 
 
 	            // ==========================================
@@ -167,6 +252,70 @@ public class CrawlerService {
 	}
 
 
+	
+	private String getRenderedHtml(String url) {
+
+	    ChromeOptions options = new ChromeOptions();
+
+	    options.addArguments("--headless=new");
+	    options.addArguments("--no-sandbox");
+	    options.addArguments("--disable-dev-shm-usage");
+	    options.addArguments("--disable-gpu");
+
+	    WebDriver driver = new ChromeDriver(options);
+
+	    try {
+
+	        System.out.println("================================");
+	        System.out.println("USING SELENIUM");
+	        System.out.println("URL: " + url);
+	        System.out.println("================================");
+
+	        driver.get(url);
+
+	        WebDriverWait wait =
+	                new WebDriverWait(driver, Duration.ofSeconds(10));
+
+	        wait.until(
+	                ExpectedConditions.presenceOfElementLocated(
+	                        By.tagName("body")
+	                )
+	        );
+
+	        // Give JavaScript a little time to finish rendering
+	        Thread.sleep(2000);
+
+	        String renderedHtml = driver.getPageSource();
+
+	        System.out.println(
+	                "Rendered HTML size: "
+	                + renderedHtml.length()
+	        );
+
+	        System.out.println(
+	                "Rendered links: "
+	                + driver.findElements(
+	                        By.cssSelector("a[href]")
+	                ).size()
+	        );
+
+	        return renderedHtml;
+
+	    } catch (Exception e) {
+
+	        System.out.println("Selenium failed: " + e.getMessage());
+
+	        return "";
+
+	    } finally {
+
+	        driver.quit();
+
+	        System.out.println("Selenium browser closed.");
+	    }
+	}
+	
+	
     private String extractStructuredContent(
             org.jsoup.nodes.Document html,
             String url) {
