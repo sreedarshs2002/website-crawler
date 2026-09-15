@@ -3,16 +3,18 @@ FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y chromium chromium-driver
-
-RUN echo "===== CHROMIUM =====" && \
+    apt-get install -y chromium chromium-driver && \
+    echo "====================================" && \
+    echo "CHROMIUM LOCATION:" && \
     command -v chromium || true && \
-    command -v chromium-browser || true && \
-    find /usr -type f -name "chromium*" 2>/dev/null | head -20
-
-RUN echo "===== CHROMEDRIVER =====" && \
+    echo "CHROMIUM VERSION:" && \
+    chromium --version || true && \
+    echo "====================================" && \
+    echo "CHROMEDRIVER LOCATION:" && \
     command -v chromedriver || true && \
-    chromedriver --version || true
+    echo "CHROMEDRIVER VERSION:" && \
+    chromedriver --version || true && \
+    echo "===================================="
 
 COPY . .
 
