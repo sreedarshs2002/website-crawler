@@ -29,7 +29,7 @@ public class CrawlerService {
 	        String domain) {
 
 	    ChromeOptions options = new ChromeOptions();
-	    options.setBinary("/usr/bin/chromium");
+	 
 	    
 	    options.addArguments("--headless=new");
 	    options.addArguments("--no-sandbox");
@@ -535,7 +535,7 @@ public class CrawlerService {
 
 		ChromeOptions options = new ChromeOptions();
 
-		options.setBinary("/usr/bin/chromium");
+		
 
 		options.addArguments("--headless=new");
 		options.addArguments("--no-sandbox");
