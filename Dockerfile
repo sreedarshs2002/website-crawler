@@ -5,8 +5,14 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y chromium chromium-driver
 
-RUN echo "=== Chromium locations ===" && \
-    find /usr -type f \( -name "chromium" -o -name "chromium-browser" \) 2>/dev/null | head -20
+RUN echo "===== CHROMIUM =====" && \
+    command -v chromium || true && \
+    command -v chromium-browser || true && \
+    find /usr -type f -name "chromium*" 2>/dev/null | head -20
+
+RUN echo "===== CHROMEDRIVER =====" && \
+    command -v chromedriver || true && \
+    chromedriver --version || true
 
 COPY . .
 
