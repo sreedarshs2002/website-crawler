@@ -40,10 +40,26 @@ public class CrawlerService {
 		options.addArguments("--disable-extensions");
 		options.addArguments("--disable-software-rasterizer");
 
+		// Add these
+		options.addArguments("--disable-setuid-sandbox");
+		options.addArguments("--no-zygote");
+		options.addArguments("--enable-logging");
+		options.addArguments("--log-level=0");
+
 		System.setProperty(
 		        "webdriver.chrome.driver",
 		        "/usr/bin/chromedriver"
 		);
+
+		// Debug information
+		System.out.println("===== SELENIUM DEBUG =====");
+		System.out.println("Chromium exists: " +
+		        new java.io.File("/usr/bin/chromium").exists());
+
+		System.out.println("ChromeDriver exists: " +
+		        new java.io.File("/usr/bin/chromedriver").exists());
+
+		System.out.println("==========================");
 
 		WebDriver driver = new ChromeDriver(options);
 
@@ -553,10 +569,26 @@ public class CrawlerService {
 		options.addArguments("--disable-extensions");
 		options.addArguments("--disable-software-rasterizer");
 
+		// Add these
+		options.addArguments("--disable-setuid-sandbox");
+		options.addArguments("--no-zygote");
+		options.addArguments("--enable-logging");
+		options.addArguments("--log-level=0");
+
 		System.setProperty(
 		        "webdriver.chrome.driver",
 		        "/usr/bin/chromedriver"
 		);
+
+		// Debug information
+		System.out.println("===== SELENIUM DEBUG =====");
+		System.out.println("Chromium exists: " +
+		        new java.io.File("/usr/bin/chromium").exists());
+
+		System.out.println("ChromeDriver exists: " +
+		        new java.io.File("/usr/bin/chromedriver").exists());
+
+		System.out.println("==========================");
 
 		WebDriver driver = new ChromeDriver(options);
 
