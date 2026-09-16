@@ -4,17 +4,15 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y chromium chromium-driver && \
-    echo "====================================" && \
-    echo "CHROMIUM LOCATION:" && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "===== CHECKING CHROMIUM =====" && \
     command -v chromium || true && \
-    echo "CHROMIUM VERSION:" && \
-    chromium --version || true && \
-    echo "====================================" && \
-    echo "CHROMEDRIVER LOCATION:" && \
+    chromium --version || true
+
+RUN echo "===== CHECKING CHROMEDRIVER =====" && \
     command -v chromedriver || true && \
-    echo "CHROMEDRIVER VERSION:" && \
-    chromedriver --version || true && \
-    echo "===================================="
+    chromedriver --version || true
 
 COPY . .
 

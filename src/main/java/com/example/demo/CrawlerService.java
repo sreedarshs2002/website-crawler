@@ -28,15 +28,24 @@ public class CrawlerService {
 	        Set<String> visited,
 	        String domain) {
 
-	    ChromeOptions options = new ChromeOptions();
-	 
-	    
-	    options.addArguments("--headless");
-	    options.addArguments("--no-sandbox");
-	    options.addArguments("--disable-dev-shm-usage");
-	    options.addArguments("--disable-gpu");
+		ChromeOptions options = new ChromeOptions();
 
-	    WebDriver driver = new ChromeDriver(options);
+		options.setBinary("/usr/bin/chromium");
+
+		options.addArguments("--headless=new");
+		options.addArguments("--no-sandbox");
+		options.addArguments("--disable-dev-shm-usage");
+		options.addArguments("--disable-gpu");
+		options.addArguments("--remote-allow-origins=*");
+		options.addArguments("--disable-extensions");
+		options.addArguments("--disable-software-rasterizer");
+
+		System.setProperty(
+		        "webdriver.chrome.driver",
+		        "/usr/bin/chromedriver"
+		);
+
+		WebDriver driver = new ChromeDriver(options);
 
 	    try {
 
@@ -532,17 +541,22 @@ public class CrawlerService {
 
 	
 	private String getRenderedHtml(String url) {
-
 		ChromeOptions options = new ChromeOptions();
 
-		
+		options.setBinary("/usr/bin/chromium");
 
-		options.addArguments("--headless");
+		options.addArguments("--headless=new");
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-dev-shm-usage");
 		options.addArguments("--disable-gpu");
-		options.addArguments("--disable-software-rasterizer");
 		options.addArguments("--remote-allow-origins=*");
+		options.addArguments("--disable-extensions");
+		options.addArguments("--disable-software-rasterizer");
+
+		System.setProperty(
+		        "webdriver.chrome.driver",
+		        "/usr/bin/chromedriver"
+		);
 
 		WebDriver driver = new ChromeDriver(options);
 
