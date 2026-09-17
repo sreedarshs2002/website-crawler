@@ -581,18 +581,19 @@ public class CrawlerService {
 
 	    options.setBinary("/usr/bin/chromium-browser");
 
-	    options.addArguments("--headless=new");
+	    options.addArguments("--headless");
 	    options.addArguments("--no-sandbox");
 	    options.addArguments("--disable-dev-shm-usage");
 	    options.addArguments("--disable-gpu");
-	    options.addArguments("--remote-allow-origins=*");
 	    options.addArguments("--disable-extensions");
-	    options.addArguments("--disable-software-rasterizer");
-	    options.addArguments("--disable-setuid-sandbox");
 	    options.addArguments("--no-zygote");
-
-	    options.addArguments("--enable-logging");
-	    options.addArguments("--log-level=0");
+	    options.addArguments("--single-process");
+	    options.addArguments("--disable-software-rasterizer");
+	    options.addArguments("--disable-background-networking");
+	    options.addArguments("--disable-default-apps");
+	    options.addArguments("--disable-sync");
+	    options.addArguments("--disable-translate");
+	    options.addArguments("--disable-features=Translate");
 
 	    System.setProperty(
 	            "webdriver.chrome.driver",
