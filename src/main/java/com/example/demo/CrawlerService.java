@@ -30,7 +30,7 @@ public class CrawlerService {
 
 		ChromeOptions options = new ChromeOptions();
 
-		options.setBinary("/usr/bin/chromium");
+		options.setBinary("/usr/bin/chromium-browser");
 
 		options.addArguments("--headless=new");
 		options.addArguments("--no-sandbox");
@@ -54,7 +54,7 @@ public class CrawlerService {
 		// Debug information
 		System.out.println("===== SELENIUM DEBUG =====");
 		System.out.println("Chromium exists: " +
-		        new java.io.File("/usr/bin/chromium").exists());
+		        new java.io.File("/usr/bin/chromium-browser").exists());
 
 		System.out.println("ChromeDriver exists: " +
 		        new java.io.File("/usr/bin/chromedriver").exists());
