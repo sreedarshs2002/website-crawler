@@ -52,16 +52,33 @@ public class CrawlerService {
 		);
 
 		// Debug information
-		System.out.println("===== SELENIUM DEBUG =====");
-		System.out.println("Chromium exists: " +
-		        new java.io.File("/usr/bin/chromium-browser").exists());
+		System.out.println("===== SELENIUM DEBUG START =====");
 
-		System.out.println("ChromeDriver exists: " +
-		        new java.io.File("/usr/bin/chromedriver").exists());
+		System.out.println("STEP 1");
 
-		System.out.println("==========================");
+		System.out.println("Chromium path check starting");
+
+		java.io.File chromium =
+		        new java.io.File("/usr/bin/chromium-browser");
+
+		System.out.println("Chromium exists: " + chromium.exists());
+
+		System.out.println("ChromeDriver path check starting");
+
+		java.io.File chromedriver =
+		        new java.io.File("/usr/bin/chromedriver");
+
+		System.out.println("ChromeDriver exists: " + chromedriver.exists());
+
+		System.out.println("STEP 2");
+
+		System.out.println("Creating ChromeDriver...");
 
 		WebDriver driver = new ChromeDriver(options);
+
+		System.out.println("ChromeDriver CREATED SUCCESSFULLY");
+
+		System.out.println("===== SELENIUM DEBUG END =====");
 
 	    try {
 
@@ -559,7 +576,7 @@ public class CrawlerService {
 	private String getRenderedHtml(String url) {
 		ChromeOptions options = new ChromeOptions();
 
-		options.setBinary("/usr/bin/chromium");
+		options.setBinary("/usr/bin/chromium-browser");
 
 		options.addArguments("--headless=new");
 		options.addArguments("--no-sandbox");
@@ -583,7 +600,7 @@ public class CrawlerService {
 		// Debug information
 		System.out.println("===== SELENIUM DEBUG =====");
 		System.out.println("Chromium exists: " +
-		        new java.io.File("/usr/bin/chromium").exists());
+		        new java.io.File("/usr/bin/chromium-browser").exists());
 
 		System.out.println("ChromeDriver exists: " +
 		        new java.io.File("/usr/bin/chromedriver").exists());
