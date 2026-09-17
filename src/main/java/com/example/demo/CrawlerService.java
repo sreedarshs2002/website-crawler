@@ -574,42 +574,52 @@ public class CrawlerService {
 
 	
 	private String getRenderedHtml(String url) {
-		ChromeOptions options = new ChromeOptions();
 
-		options.setBinary("/usr/bin/chromium-browser");
+	    ChromeOptions options = new ChromeOptions();
 
-		options.addArguments("--headless=new");
-		options.addArguments("--no-sandbox");
-		options.addArguments("--disable-dev-shm-usage");
-		options.addArguments("--disable-gpu");
-		options.addArguments("--remote-allow-origins=*");
-		options.addArguments("--disable-extensions");
-		options.addArguments("--disable-software-rasterizer");
+	    options.setBinary("/usr/bin/chromium-browser");
 
-		// Add these
-		options.addArguments("--disable-setuid-sandbox");
-		options.addArguments("--no-zygote");
-		options.addArguments("--enable-logging");
-		options.addArguments("--log-level=0");
+	    options.addArguments("--headless=new");
+	    options.addArguments("--no-sandbox");
+	    options.addArguments("--disable-dev-shm-usage");
+	    options.addArguments("--disable-gpu");
+	    options.addArguments("--remote-allow-origins=*");
+	    options.addArguments("--disable-extensions");
+	    options.addArguments("--disable-software-rasterizer");
+	    options.addArguments("--disable-setuid-sandbox");
+	    options.addArguments("--no-zygote");
 
-		System.setProperty(
-		        "webdriver.chrome.driver",
-		        "/usr/bin/chromedriver"
-		);
+	    options.addArguments("--enable-logging");
+	    options.addArguments("--log-level=0");
 
-		// Debug information
-		System.out.println("===== SELENIUM DEBUG =====");
-		System.out.println("Chromium exists: " +
-		        new java.io.File("/usr/bin/chromium-browser").exists());
+	    System.setProperty(
+	            "webdriver.chrome.driver",
+	            "/usr/bin/chromedriver"
+	    );
 
-		System.out.println("ChromeDriver exists: " +
-		        new java.io.File("/usr/bin/chromedriver").exists());
-
-		System.out.println("==========================");
-
-		WebDriver driver = new ChromeDriver(options);
+	    WebDriver driver = null;
 
 	    try {
+
+	        System.out.println("===== SELENIUM DEBUG =====");
+
+	        System.out.println("Chromium exists: " +
+	                new java.io.File(
+	                        "/usr/bin/chromium-browser"
+	                ).exists());
+
+	        System.out.println("ChromeDriver exists: " +
+	                new java.io.File(
+	                        "/usr/bin/chromedriver"
+	                ).exists());
+
+	        System.out.println("==========================");
+
+	        System.out.println("Creating ChromeDriver...");
+
+	        driver = new ChromeDriver(options);
+
+	        System.out.println("ChromeDriver CREATED SUCCESSFULLY");
 
 	        System.out.println("================================");
 	        System.out.println("USING SELENIUM");
@@ -619,7 +629,10 @@ public class CrawlerService {
 	        driver.get(url);
 
 	        WebDriverWait wait =
-	                new WebDriverWait(driver, Duration.ofSeconds(10));
+	                new WebDriverWait(
+	                        driver,
+	                        Duration.ofSeconds(10)
+	                );
 
 	        wait.until(
 	                ExpectedConditions.presenceOfElementLocated(
@@ -627,10 +640,11 @@ public class CrawlerService {
 	                )
 	        );
 
-	        // Give JavaScript a little time to finish rendering
+	        // Give JavaScript time to finish rendering
 	        Thread.sleep(2000);
 
-	        String renderedHtml = driver.getPageSource();
+	        String renderedHtml =
+	                driver.getPageSource();
 
 	        System.out.println(
 	                "Rendered HTML size: "
@@ -648,15 +662,41 @@ public class CrawlerService {
 
 	    } catch (Exception e) {
 
-	        System.out.println("Selenium failed: " + e.getMessage());
+	        System.out.println(
+	                "================================"
+	        );
+
+	        System.out.println(
+	                "SELENIUM FAILED"
+	        );
+
+	        System.out.println(
+	                "Error Type: "
+	                + e.getClass().getName()
+	        );
+
+	        System.out.println(
+	                "Error Message: "
+	                + e.getMessage()
+	        );
+
+	        System.out.println(
+	                "================================"
+	        );
+
+	        e.printStackTrace();
 
 	        return "";
 
 	    } finally {
 
-	        driver.quit();
+	        if (driver != null) {
+	            driver.quit();
 
-	        System.out.println("Selenium browser closed.");
+	            System.out.println(
+	                    "Selenium browser closed."
+	            );
+	        }
 	    }
 	}
 	
