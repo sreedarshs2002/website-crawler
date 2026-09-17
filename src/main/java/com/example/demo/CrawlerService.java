@@ -9,7 +9,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.ai.document.Document;
-
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -593,6 +593,18 @@ public class CrawlerService {
 	            "/usr/bin/chromedriver"
 	    );
 
+	    ChromeDriverService service =
+	            new ChromeDriverService.Builder()
+	                    .usingDriverExecutable(
+	                            new java.io.File("/usr/bin/chromedriver")
+	                    )
+	                    .withLogFile(
+	                            new java.io.File("/tmp/chromedriver.log")
+	                    )
+	                    .withVerbose(true)
+	                    .build();
+	    
+
 	    WebDriver driver = null;
 
 	    try {
@@ -613,7 +625,7 @@ public class CrawlerService {
 
 	        System.out.println("Creating ChromeDriver...");
 
-	        driver = new ChromeDriver(options);
+	        driver = new ChromeDriver(service, options);
 
 	        System.out.println("ChromeDriver CREATED SUCCESSFULLY");
 
@@ -682,6 +694,23 @@ public class CrawlerService {
 
 	        e.printStackTrace();
 
+	        
+	        try {
+	            java.nio.file.Path logPath =
+	                    java.nio.file.Paths.get("/tmp/chromedriver.log");
+
+	            if (java.nio.file.Files.exists(logPath)) {
+	                System.out.println("===== CHROMEDRIVER LOG =====");
+	                System.out.println(
+	                        java.nio.file.Files.readString(logPath)
+	                );
+	                System.out.println("============================");
+	            }
+	        } catch (Exception logError) {
+	            logError.printStackTrace();
+	        }
+	        
+	        
 	        return "";
 
 	    } finally {
