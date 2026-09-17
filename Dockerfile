@@ -6,6 +6,10 @@ RUN apt-get update && \
     apt-get install -y chromium chromium-driver && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo "===== TESTING CHROMIUM =====" && \
+    /usr/bin/chromium-browser --version && \
+    /usr/bin/chromedriver --version
+
 RUN echo "===== CHECKING CHROMIUM FILES =====" && \
     which chromium || true && \
     which chromium-browser || true && \
@@ -15,13 +19,3 @@ RUN echo "===== CHECKING CHROMIUM FILES =====" && \
 RUN echo "===== CHECKING CHROMEDRIVER FILES =====" && \
     which chromedriver || true && \
     find /usr -name "chromedriver*" 2>/dev/null | head -20
-
-COPY . .
-
-RUN chmod +x mvnw
-
-RUN ./mvnw clean package -DskipTests
-
-EXPOSE 8080
-
-CMD ["java", "-jar", "target/website-crawler-0.0.1-SNAPSHOT.jar"]
