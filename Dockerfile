@@ -6,11 +6,11 @@ RUN apt-get update && \
     apt-get install -y chromium chromium-driver && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo "===== CHECKING CHROMIUM =====" && \
+RUN echo "===== CHECKING CHROMIUM v2 =====" && \
     command -v chromium || true && \
     chromium --version || true
 
-RUN echo "===== CHECKING CHROMEDRIVER =====" && \
+RUN echo "===== CHECKING CHROMEDRIVER v2 =====" && \
     command -v chromedriver || true && \
     chromedriver --version || true
 
