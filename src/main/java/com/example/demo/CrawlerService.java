@@ -575,6 +575,8 @@ public class CrawlerService {
 	
 	private String getRenderedHtml(String url) {
 
+	    System.out.println("🔥 ENTERED getRenderedHtml()");
+
 	    ChromeOptions options = new ChromeOptions();
 
 	    options.setBinary("/usr/bin/chromium-browser");
